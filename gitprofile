@@ -1,0 +1,132 @@
+#!/bin/bash
+### function ###
+abort_commit() {
+  echo -e "\nNo commited"
+  exit 0
+}
+
+abort_profile() {
+  echo -e "\nProfile not changed"
+  exit 0
+}
+
+print_help() {
+  echo -e \
+  "usage: $NEWGIT [OPTION]\n \
+  -h:\thelp of $NEWGIT\n\n \
+  profile:\n \
+  -l --list:\tlist commiter profile in project\n \
+  -m --modify:\tmodify commiter with commiter in the list\n\n \
+  And all git command (git --help)."
+}
+
+print_profile() {
+  if [ -z $1 ] && [ -z $2 ]; then
+    name=$NAME
+    email=$EMAIL
+  else
+    name=$1
+    email=$2
+  fi
+  echo -e "  -> user.name: \033[36m$name\033[0m"
+  echo -e "  -> user.email: \033[36m$email\033[0m"
+}
+
+getCommiter() {
+  commiter=$($GIT log --pretty=format:"%cn:%ce;" |tr ";" "\n"|sort|uniq|tr "\n" ";"|cut -c 2-|rev|cut -c 2-|rev)
+  i=0
+  IFS=";"
+  for profil in $commiter
+  do
+    i=$(($i + 1))
+    IFS=':' read -a user <<< "${profil}"
+    if [ "${user[0]}" = "$NAME" ] && [ "${user[1]}" = "$EMAIL" ];then
+      echo -e "\033[32m [$i] : ${user[0]} <${user[1]}>\033[0m"
+    else
+      echo -e " [$i] : ${user[0]} <${user[1]}>"
+    fi
+  done
+}
+### end function ###
+
+
+GIT="/usr/bin/git"
+NEWGIT="gitprofile"
+VERSION="$NEWGIT version 1.0"
+
+NAME=`$GIT config --get user.name`
+EMAIL=`$GIT config --get user.email`
+
+if [ -z "$NAME" ]; then
+  NAME=$USER
+fi
+if [ -z "$EMAIL" ]; then
+  EMAIL="$USER"@"`hostname`"
+fi
+
+case $1 in
+  --version | version)
+    $GIT --version
+    echo -e $VERSION
+  ;;
+  -h)
+    print_help
+  ;;
+  commit)
+    trap abort_commit INT
+    echo -e "###\033[31m WARNING \033[0m###"
+    echo -e "Your commit profile:"
+    print_profile
+    confirm="$NAME"
+    read -p "Confirm name [ $confirm ]? " choice
+    if [ "$choice" = "$confirm" ]; then
+      $GIT "$@"
+    else
+      abort_commit
+    fi
+  ;;
+  profile)
+    trap abort_profile INT
+    case $2 in
+      -l | --list)
+        getCommiter
+      ;;
+      -m | --modify)
+        getCommiter
+        choice="a"
+        while [ 1 ]
+        do
+          if ! [ $choice -eq $choice 2> /dev/null ]; then
+            read -p "Choice profile: " choice
+          else
+            break
+          fi
+        done
+        i=$(($choice - 1))
+        commiter=($commiter)
+        IFS=':' read -a user <<< "${commiter[$i]}"
+        print_profile ${user[0]} ${user[1]}
+        read -p "Configure with this profile (yes/no)? " choice
+        if [ "$choice" = "yes" ]; then
+          $GIT config user.name ${user[0]}
+          $GIT config user.email ${user[1]}
+          echo -e "Profile changed in: "
+          print_profile ${user[0]} ${user[1]}
+        else
+          abort_profile
+        fi
+      ;;
+      "")
+        echo -e "Your profile:"
+        print_profile
+      ;;
+      *)
+        echo -e "$NEWGIT: '$2' is not a $NEWGIT command. See '$NEWGIT -h'."
+      ;;
+    esac
+  ;;
+  *)
+    $GIT "$@"
+  ;;
+esac
+
