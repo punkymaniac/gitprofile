@@ -128,7 +128,7 @@ case $1 in
             while [ 1 ]
             do
               read -p "Choice profile: " idC
-              if [ ! -z $idC ] && [ $idC -ne 0 ] && [ $idC -le $id ]; then
+              if [[ $idC =~ ^[0-9]+$ ]] && [ $idC -ne 0 ] && [ $idC -le $id ]; then
                 break
               else
                 echo -e "Invalid id"
@@ -199,7 +199,7 @@ case $1 in
           while [ 1 ]
           do
             read -p "profile to delete: " idD
-            if [ ! -z $idD ] &&  [ $idD -ne 0 ] && [ $idD -le $id ]; then
+            if [[ $idC =~ ^[0-9]+$ ]] &&  [ $idD -ne 0 ] && [ $idD -le $id ]; then
               break
             else
               echo -e "Invalid id"
