@@ -10,6 +10,11 @@ abort_profile() {
   exit 0
 }
 
+abort_new() {
+  echo -e "\nProfile not added"
+  exit 0
+}
+
 print_help() {
   echo -e \
   "usage: $NEWGIT [OPTION]\n \
@@ -47,6 +52,30 @@ getCommiter() {
     fi
   done
 }
+
+checkFile() {
+  if ! [ -f "$FILE" ]; then
+    echo -e "$FILE: is not a valid file"
+    exit 1
+  fi
+}
+
+add_profile() {
+  newProfile="$1"
+  IFS=':' read -a new <<< "$1"
+  newName=${new[0]}
+  newMail=${new[1]}
+  listProfile=$(<$FILE)
+  for profile in $listProfile
+  do
+    if [ "$profile" = "$newProfile" ]; then
+      echo -e "This profile is already saved"
+      exit 0
+    fi
+  done
+  echo -e "$newName:$newMail" >> "$FILE"
+}
+
 ### end function ###
 
 
@@ -122,20 +151,27 @@ case $1 in
         esac
       ;;
       -s | --save)
-        if ! [ -f "$FILE" ]; then
-          echo -e "$FILE: is not a valid file"
-          exit 1
-        fi
-        currentProfile="$NAME:$EMAIL"
-        listProfile=$(<$FILE)
-        for profile in $listProfile
+        checkFile
+        add_profile "$NAME:$EMAIL"
+      ;;
+      -n | --new)
+        trap abort_new INT
+        checkFile
+        while [ 1 ]
         do
-          if [ "$profile" = "$currentProfile" ]; then
-            echo -e "This profile is already saved"
-            exit 0
+          read -p "user.name: " newName
+          if ! [ -z "$newName" ]; then
+            break
           fi
         done
-        echo -e "$NAME:$EMAIL" >> "$FILE"
+        while [ 1 ]
+        do
+          read -p "user.email: " newEmail
+          if ! [ -z "$newEmail" ]; then
+            break
+          fi
+        done
+        add_profile "$newName:$newEmail"
       ;;
       "")
         echo -e "Your profile:"
