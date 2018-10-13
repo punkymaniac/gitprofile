@@ -54,9 +54,11 @@ get_commiter() {
 }
 
 check_file() {
-  if ! [ -f "$FILE" ]; then
-    echo -e "$FILE: is not a valid file"
-    exit 1
+  if [ -e "$FILE" ]; then
+    if ! [ -f "$FILE" ]; then
+      echo -e "$FILE: is not a valid file"
+      exit 1
+    fi
   fi
 }
 
