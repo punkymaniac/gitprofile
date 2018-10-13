@@ -37,7 +37,7 @@ print_profile() {
   echo -e "  -> user.email: \033[36m$email\033[0m"
 }
 
-getCommiter() {
+get_commiter() {
   commiter=$($GIT log --all --pretty=format:"%cn:%ce" | sort | uniq | tr '\n' ';' | rev | cut -c 2- | rev)
   i=0
   IFS=";"
@@ -53,7 +53,7 @@ getCommiter() {
   done
 }
 
-checkFile() {
+check_file() {
   if ! [ -f "$FILE" ]; then
     echo -e "$FILE: is not a valid file"
     exit 1
@@ -120,11 +120,11 @@ case $1 in
       log)
         case $3 in
           -l | --list)
-            getCommiter
+            get_commiter
           ;;
           -m | --modify)
             trap abort_profile INT
-            getCommiter
+            get_commiter
             choice="a"
             while [ 1 ]
             do
@@ -151,12 +151,12 @@ case $1 in
         esac
       ;;
       -s | --save)
-        checkFile
+        check_file
         add_profile "$NAME:$EMAIL"
       ;;
       -n | --new)
         trap abort_new INT
-        checkFile
+        check_file
         while [ 1 ]
         do
           read -p "user.name: " newName
