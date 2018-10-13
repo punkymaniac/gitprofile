@@ -23,7 +23,7 @@ abort_delete() {
 print_help() {
   echo -e \
   "usage: $NEWGIT [OPTION]\n \
-  -h:\t\t\thelp of $NEWGIT\n\n \
+  -h --help:\t\thelp of $NEWGIT\n\n \
   -s --save:\t\tsave the current profile\n \
   -n --new:\t\tadd a new profile\n \
   -l --list:\t\tlist saved profile\n \
@@ -127,7 +127,7 @@ case $1 in
   ;;
   profile)
     case $2 in
-      -h)
+      -h | --help)
         print_help
       ;;
       log)
