@@ -30,7 +30,7 @@ print_help() {
   -d --delete:\t\tdelete one profile\n\n \
   log:\toption based on git log\n \
     -l --list:\t\tlist commiter profile in project\n \
-    -m --modify:\tmodify commiter with commiter in the list\n\n \
+    -u --use:\t\tuse commiter profile\n\n \
   And all git command (git --help)."
 }
 
@@ -136,7 +136,7 @@ case $1 in
           -l | --list)
             print_list_profile $COMMITER
           ;;
-          -m | --modify)
+          -u | --use)
             trap abort_profile INT
             print_list_profile $COMMITER
             while [ 1 ]
