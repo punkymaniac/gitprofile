@@ -241,7 +241,7 @@ case $1 in
           do
             i=$(($i + 1))
             if [ $i -eq $idD ]; then
-              echo -e "delete: $profile"
+              echo -e "Delete: $profile"
             else
               add_profile $profile
             fi
