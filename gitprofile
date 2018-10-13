@@ -149,11 +149,11 @@ case $1 in
               fi
             done
             i=$(($idC - 1))
-            commiter=($commiter)
+            commiter=($COMMITER)
             IFS=':' read -a user <<< "${commiter[$i]}"
             print_profile ${user[0]} ${user[1]}
             read -p "Configure with this profile (yes/no)? " choice
-            if [ "$choice" = "yes" ]; then
+            if [ "$choice" = "yes" ] || [ "$choice" = "y" ]; then
               $GIT config user.name ${user[0]}
               $GIT config user.email ${user[1]}
               echo -e "Profile changed in: "
