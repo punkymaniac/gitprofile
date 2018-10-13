@@ -46,22 +46,6 @@ print_profile() {
   echo -e "  -> user.email: \033[36m$email\033[0m"
 }
 
-get_commiter() {
-  commiter=$($GIT log --all --pretty=format:"%cn:%ce" | sort | uniq | tr '\n' ';' | rev | cut -c 2- | rev)
-  i=0
-  IFS=";"
-  for profil in $commiter
-  do
-    i=$(($i + 1))
-    IFS=':' read -a user <<< "${profil}"
-    if [ "${user[0]}" = "$NAME" ] && [ "${user[1]}" = "$EMAIL" ];then
-      echo -e "\033[32m [$i] : ${user[0]} <${user[1]}>\033[0m"
-    else
-      echo -e " [$i] : ${user[0]} <${user[1]}>"
-    fi
-  done
-}
-
 check_file() {
   if [ -e "$FILE" ]; then
     if ! [ -f "$FILE" ]; then
@@ -96,6 +80,8 @@ GIT="/usr/bin/git"
 NEWGIT="git profile"
 VERSION="$NEWGIT version 1.0"
 FILE="$HOME/.gitprofile"
+
+COMMITER=$($GIT log --all --pretty=format:"%cn:%ce" | sort | uniq | tr '\n' ';' | rev | cut -c 2- | rev)
 
 NAME=`$GIT config --get user.name`
 EMAIL=`$GIT config --get user.email`
@@ -133,21 +119,42 @@ case $1 in
       log)
         case $3 in
           -l | --list)
-            get_commiter
+            id=0
+            IFS=";"
+            for profil in $COMMITER
+            do
+              i=$(($i + 1))
+              IFS=':' read -a p <<< "${profil}"
+              if [ "${p[0]}" = "$NAME" ] && [ "${p[1]}" = "$EMAIL" ];then
+                echo -e "\033[32m [$id] ${p[0]} <${p[1]}>\033[0m"
+              else
+                echo -e " [$id] ${p[0]} <${p[1]}>"
+              fi
+            done
           ;;
           -m | --modify)
             trap abort_profile INT
-            get_commiter
-            choice="a"
-            while [ 1 ]
+            id=0
+            for profile in $COMMITER
             do
-              if ! [ $choice -eq $choice 2> /dev/null ]; then
-                read -p "Choice profile: " choice
+              id=$(($id + 1))
+              IFS=':' read -a p <<< "$profile"
+              if [ "${p[0]}" = "$NAME" ] && [ "${p[1]}" = "$EMAIL" ];then
+                echo -e "\033[32m [$id] ${p[0]} <${p[1]}>\033[0m"
               else
-                break
+                echo -e " [$id] ${p[0]} <${p[1]}>"
               fi
             done
-            i=$(($choice - 1))
+            while [ 1 ]
+            do
+              read -p "Choice profile: " idC
+              if [ ! -z $idC ] && [ $idC -ne 0 ] && [ $idC -le $id ]; then
+                break
+              else
+                echo -e "Invalid id"
+              fi
+            done
+            i=$(($idC - 1))
             commiter=($commiter)
             IFS=':' read -a user <<< "${commiter[$i]}"
             print_profile ${user[0]} ${user[1]}
