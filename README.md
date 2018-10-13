@@ -5,7 +5,10 @@ A simple git profile management.
 ## Feature
 * Print current profile
 * Confirmation profile before commit
-* List al commiter profile on the project
+* Save/add profile
+* List al profile saved
+* Delete profile saved
+* List all commiter profile on the project
 * Modify profile with one commiter profile on the project
 
 ## Getting Started
