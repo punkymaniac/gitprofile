@@ -23,10 +23,14 @@ abort_delete() {
 print_help() {
   echo -e \
   "usage: $NEWGIT [OPTION]\n \
-  -h:\thelp of $NEWGIT\n\n \
-  profile:\n \
-  -l --list:\tlist commiter profile in project\n \
-  -m --modify:\tmodify commiter with commiter in the list\n\n \
+  -h:\t\t\thelp of $NEWGIT\n\n \
+  -s --save:\t\tsave the current profile\n \
+  -n --new:\t\tadd a new profile\n \
+  -l --list:\t\tlist saved profile\n \
+  -d --delete:\t\tdelete one profile\n\n \
+  log:\toption based on git log\n \
+    -l --list:\t\tlist commiter profile in project\n \
+    -m --modify:\tmodify commiter with commiter in the list\n\n \
   And all git command (git --help)."
 }
 
