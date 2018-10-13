@@ -15,6 +15,11 @@ abort_new() {
   exit 0
 }
 
+abort_delete() {
+  echo -e "\nNo profile deleted"
+  exit 0
+}
+
 print_help() {
   echo -e \
   "usage: $NEWGIT [OPTION]\n \
@@ -189,6 +194,46 @@ case $1 in
           for profile in $listProfile
           do
             echo -e "$profile"
+          done
+        fi
+      ;;
+      -d | --delete)
+        trap abort_delete INT
+        if [ -e "$FILE" ]; then
+          listProfile=$(<$FILE)
+        else
+          listProfile=""
+        fi
+        if [ -z "$listProfile" ]; then
+          echo -e "No profile saved"
+        else
+          id=0
+          for profile in $listProfile
+          do
+            id=$(($id + 1))
+            IFS=':' read -a p <<< "$profile"
+            echo -e "[$id] ${p[0]} ${p[1]}"
+          done
+          while [ 1 ]
+          do
+            read -p "profile to delete: " idD
+            if [ ! -z $idD ] &&  [ $idD -ne 0 ] && [ $idD -le $id ]; then
+              break
+            else
+              echo -e "Invalid id"
+            fi
+          done
+          i=0
+          # reset file
+          echo -e "" > "$FILE"
+          for profile in $listProfile
+          do
+            i=$(($i + 1))
+            if [ $i -eq $idD ]; then
+              echo -e "delete: $profile"
+            else
+              add_profile $profile
+            fi
           done
         fi
       ;;
