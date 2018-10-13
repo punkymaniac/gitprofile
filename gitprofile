@@ -51,7 +51,7 @@ getCommiter() {
 
 
 GIT="/usr/bin/git"
-NEWGIT="gitprofile"
+NEWGIT="git profile"
 VERSION="$NEWGIT version 1.0"
 
 NAME=`$GIT config --get user.name`
