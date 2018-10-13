@@ -1,22 +1,8 @@
 #!/bin/bash
 ### function ###
-abort_commit() {
-  echo -e "\nNo commited"
-  exit 0
-}
 
-abort_profile() {
-  echo -e "\nProfile not changed"
-  exit 0
-}
-
-abort_new() {
-  echo -e "\nNo profile added"
-  exit 0
-}
-
-abort_delete() {
-  echo -e "\nNo profile deleted"
+interrupt() {
+  echo -e "\n$1"
   exit 0
 }
 
@@ -114,7 +100,7 @@ case $1 in
     echo -e $VERSION
   ;;
   commit)
-    trap abort_commit INT
+    trap 'interrupt "No commited"' INT
     echo -e "###\033[31m WARNING \033[0m###"
     echo -e "Your commit profile:"
     print_profile
@@ -123,7 +109,7 @@ case $1 in
     if [ "$choice" = "$confirm" ]; then
       $GIT "$@"
     else
-      abort_commit
+      interrupt "No commited"
     fi
   ;;
   profile)
@@ -137,7 +123,7 @@ case $1 in
             print_list_profile $COMMITER
           ;;
           -u | --use)
-            trap abort_profile INT
+            trap 'interrupt "Profile not changed" ' INT
             print_list_profile $COMMITER
             while [ 1 ]
             do
@@ -159,7 +145,7 @@ case $1 in
               echo -e "Profile changed in: "
               print_profile ${user[0]} ${user[1]}
             else
-              abort_profile
+              interrupt "Profile not changed"
             fi
           ;;
         esac
@@ -169,7 +155,7 @@ case $1 in
         add_profile "$NAME:$EMAIL"
       ;;
       -n | --new)
-        trap abort_new INT
+        trap 'interrupt "No profile added"' INT
         check_file
         while [ 1 ]
         do
@@ -200,7 +186,7 @@ case $1 in
         fi
       ;;
       -d | --delete)
-        trap abort_delete INT
+        trap 'interrupt "No profile deleted"' INT
         if [ -e "$FILE" ]; then
           listProfile=$(cat "$FILE" | tr '\n' ';' | cut -c 2- | rev | cut -c 2- | rev)
         else
