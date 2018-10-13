@@ -33,7 +33,7 @@ print_profile() {
 }
 
 getCommiter() {
-  commiter=$($GIT log --pretty=format:"%cn:%ce;" |tr ";" "\n"|sort|uniq|tr "\n" ";"|cut -c 2-|rev|cut -c 2-|rev)
+  commiter=$($GIT log --all --pretty=format:"%cn:%ce" | sort | uniq | tr '\n' ';' | rev | cut -c 2- | rev)
   i=0
   IFS=";"
   for profil in $commiter
