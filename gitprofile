@@ -175,6 +175,21 @@ case $1 in
         done
         add_profile "$newName:$newEmail"
       ;;
+      -l | --list)
+        if [ -e "$FILE" ]; then
+          listProfile=$(<$FILE)
+        else
+          listProfile=""
+        fi
+        if [ -z "$listProfile" ]; then
+          echo -e "No profile saved"
+        else
+          for profile in $listProfile
+          do
+            echo -e "$profile"
+          done
+        fi
+      ;;
       "")
         echo -e "Your profile:"
         print_profile
