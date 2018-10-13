@@ -73,6 +73,21 @@ add_profile() {
   echo -e "$newName:$newMail" >> "$FILE"
 }
 
+print_list_profile() {
+  id=0
+  IFS=";"
+  for profil in $1
+  do
+    id=$(($id + 1))
+    IFS=':' read -a p <<< "${profil}"
+    if [ "${p[0]}" = "$NAME" ] && [ "${p[1]}" = "$EMAIL" ];then
+      echo -e "\033[32m [$id] ${p[0]} <${p[1]}>\033[0m"
+    else
+      echo -e " [$id] ${p[0]} <${p[1]}>"
+    fi
+  done
+}
+
 ### end function ###
 
 
@@ -119,32 +134,11 @@ case $1 in
       log)
         case $3 in
           -l | --list)
-            id=0
-            IFS=";"
-            for profil in $COMMITER
-            do
-              i=$(($i + 1))
-              IFS=':' read -a p <<< "${profil}"
-              if [ "${p[0]}" = "$NAME" ] && [ "${p[1]}" = "$EMAIL" ];then
-                echo -e "\033[32m [$id] ${p[0]} <${p[1]}>\033[0m"
-              else
-                echo -e " [$id] ${p[0]} <${p[1]}>"
-              fi
-            done
+            print_list_profile $COMMITER
           ;;
           -m | --modify)
             trap abort_profile INT
-            id=0
-            for profile in $COMMITER
-            do
-              id=$(($id + 1))
-              IFS=':' read -a p <<< "$profile"
-              if [ "${p[0]}" = "$NAME" ] && [ "${p[1]}" = "$EMAIL" ];then
-                echo -e "\033[32m [$id] ${p[0]} <${p[1]}>\033[0m"
-              else
-                echo -e " [$id] ${p[0]} <${p[1]}>"
-              fi
-            done
+            print_list_profile $COMMITER
             while [ 1 ]
             do
               read -p "Choice profile: " idC
@@ -195,36 +189,27 @@ case $1 in
       ;;
       -l | --list)
         if [ -e "$FILE" ]; then
-          listProfile=$(<$FILE)
+          listProfile=$(cat "$FILE" | tr '\n' ';' | cut -c 2- | rev | cut -c 2- | rev)
         else
           listProfile=""
         fi
         if [ -z "$listProfile" ]; then
           echo -e "No profile saved"
         else
-          for profile in $listProfile
-          do
-            echo -e "$profile"
-          done
+          print_list_profile $listProfile
         fi
       ;;
       -d | --delete)
         trap abort_delete INT
         if [ -e "$FILE" ]; then
-          listProfile=$(<$FILE)
+          listProfile=$(cat "$FILE" | tr '\n' ';' | cut -c 2- | rev | cut -c 2- | rev)
         else
           listProfile=""
         fi
         if [ -z "$listProfile" ]; then
           echo -e "No profile saved"
         else
-          id=0
-          for profile in $listProfile
-          do
-            id=$(($id + 1))
-            IFS=':' read -a p <<< "$profile"
-            echo -e "[$id] ${p[0]} ${p[1]}"
-          done
+          print_list_profile $listProfile
           while [ 1 ]
           do
             read -p "profile to delete: " idD
