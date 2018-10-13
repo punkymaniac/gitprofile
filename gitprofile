@@ -83,7 +83,6 @@ case $1 in
     fi
   ;;
   profile)
-    trap abort_profile INT
     case $2 in
       -h)
         print_help
@@ -92,6 +91,7 @@ case $1 in
         getCommiter
       ;;
       -m | --modify)
+        trap abort_profile INT
         getCommiter
         choice="a"
         while [ 1 ]
