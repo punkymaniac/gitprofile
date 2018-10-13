@@ -69,9 +69,6 @@ case $1 in
     $GIT --version
     echo -e $VERSION
   ;;
-  -h)
-    print_help
-  ;;
   commit)
     trap abort_commit INT
     echo -e "###\033[31m WARNING \033[0m###"
@@ -88,6 +85,9 @@ case $1 in
   profile)
     trap abort_profile INT
     case $2 in
+      -h)
+        print_help
+      ;;
       -l | --list)
         getCommiter
       ;;
