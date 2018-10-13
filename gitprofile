@@ -87,34 +87,38 @@ case $1 in
       -h)
         print_help
       ;;
-      -l | --list)
-        getCommiter
-      ;;
-      -m | --modify)
-        trap abort_profile INT
-        getCommiter
-        choice="a"
-        while [ 1 ]
-        do
-          if ! [ $choice -eq $choice 2> /dev/null ]; then
-            read -p "Choice profile: " choice
-          else
-            break
-          fi
-        done
-        i=$(($choice - 1))
-        commiter=($commiter)
-        IFS=':' read -a user <<< "${commiter[$i]}"
-        print_profile ${user[0]} ${user[1]}
-        read -p "Configure with this profile (yes/no)? " choice
-        if [ "$choice" = "yes" ]; then
-          $GIT config user.name ${user[0]}
-          $GIT config user.email ${user[1]}
-          echo -e "Profile changed in: "
-          print_profile ${user[0]} ${user[1]}
-        else
-          abort_profile
-        fi
+      log)
+        case $3 in
+          -l | --list)
+            getCommiter
+          ;;
+          -m | --modify)
+            trap abort_profile INT
+            getCommiter
+            choice="a"
+            while [ 1 ]
+            do
+              if ! [ $choice -eq $choice 2> /dev/null ]; then
+                read -p "Choice profile: " choice
+              else
+                break
+              fi
+            done
+            i=$(($choice - 1))
+            commiter=($commiter)
+            IFS=':' read -a user <<< "${commiter[$i]}"
+            print_profile ${user[0]} ${user[1]}
+            read -p "Configure with this profile (yes/no)? " choice
+            if [ "$choice" = "yes" ]; then
+              $GIT config user.name ${user[0]}
+              $GIT config user.email ${user[1]}
+              echo -e "Profile changed in: "
+              print_profile ${user[0]} ${user[1]}
+            else
+              abort_profile
+            fi
+          ;;
+        esac
       ;;
       "")
         echo -e "Your profile:"
