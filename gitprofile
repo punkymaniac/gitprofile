@@ -11,7 +11,7 @@ abort_profile() {
 }
 
 abort_new() {
-  echo -e "\nProfile not added"
+  echo -e "\nNo profile added"
   exit 0
 }
 
