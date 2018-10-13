@@ -59,6 +59,8 @@ check_file() {
       echo -e "$FILE: is not a valid file"
       exit 1
     fi
+  else
+    touch -- "$FILE"
   fi
 }
 
