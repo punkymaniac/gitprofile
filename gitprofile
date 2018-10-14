@@ -79,7 +79,7 @@ print_list_profile() {
 
 GIT="/usr/bin/git"
 NEWGIT="git profile"
-VERSION="$NEWGIT version 1.0"
+VERSION="$NEWGIT version 1.0.1"
 FILE="$HOME/.gitprofile"
 
 COMMITER=$($GIT log --all --pretty=format:"%cn:%ce" | sort | uniq | tr '\n' ';' | rev | cut -c 2- | rev)
@@ -120,11 +120,11 @@ case $1 in
       log)
         case $3 in
           -l | --list)
-            print_list_profile $COMMITER
+            print_list_profile "$COMMITER"
           ;;
           -u | --use)
             trap 'interrupt "Profile not changed" ' INT
-            print_list_profile $COMMITER
+            print_list_profile "$COMMITER"
             while [ 1 ]
             do
               read -p "Choice profile: " idC
