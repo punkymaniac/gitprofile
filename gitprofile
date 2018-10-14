@@ -82,10 +82,17 @@ NEWGIT="git profile"
 VERSION="$NEWGIT version 1.0.2"
 FILE="$HOME/.gitprofile"
 
-COMMITER=$($GIT log --all --pretty=format:"%cn:%ce" | sort | uniq | tr '\n' ';' | rev | cut -c 2- | rev)
+if [ -d ".git" ]; then
+  GITREPO=true
+else
+  GITREPO=false
+fi
 
-NAME=`$GIT config --get user.name`
-EMAIL=`$GIT config --get user.email`
+if [ "$GITREPO" = true ]; then
+  COMMITER=$($GIT log --all --pretty=format:"%cn:%ce" | sort | uniq | tr '\n' ';' | rev | cut -c 2- | rev)
+  NAME=`$GIT config --get user.name`
+  EMAIL=`$GIT config --get user.email`
+fi
 
 if [ -z "$NAME" ]; then
   NAME=$USER
@@ -100,16 +107,20 @@ case $1 in
     echo -e $VERSION
   ;;
   commit)
-    trap 'interrupt "No commited"' INT
-    echo -e "###\033[31m WARNING \033[0m###"
-    echo -e "Your commit profile:"
-    print_profile
-    confirm="$NAME"
-    read -p "Confirm name [ $confirm ]? " choice
-    if [ "$choice" = "$confirm" ]; then
-      $GIT "$@"
+    if [ "$GITREPO" = true ]; then
+      trap 'interrupt "No commited"' INT
+      echo -e "###\033[31m WARNING \033[0m###"
+      echo -e "Your commit profile:"
+      print_profile
+      confirm="$NAME"
+      read -p "Confirm name [ $confirm ]? " choice
+      if [ "$choice" = "$confirm" ]; then
+        $GIT "$@"
+      else
+        interrupt "No commited"
+      fi
     else
-      interrupt "No commited"
+      $GIT "$@"
     fi
   ;;
   profile)
@@ -118,43 +129,47 @@ case $1 in
         print_help
       ;;
       --log)
-        case $3 in
-          -l | --list)
-            print_list_profile "$COMMITER"
-          ;;
-          -u | --use)
-            trap 'interrupt "Profile not changed" ' INT
-            print_list_profile "$COMMITER"
-            while [ 1 ]
-            do
-              read -p "Choice profile: " idC
-              if [[ $idC =~ ^[0-9]+$ ]] && [ $idC -ne 0 ] && [ $idC -le $id ]; then
-                break
-              else
-                echo -e "Invalid id"
-              fi
-            done
-            i=$(($idC - 1))
-            commiter=($COMMITER)
-            IFS=':' read -a user <<< "${commiter[$i]}"
-            print_profile ${user[0]} ${user[1]}
-            read -p "Configure with this profile (yes/no)? " choice
-            if [ "$choice" = "yes" ] || [ "$choice" = "y" ]; then
-              $GIT config user.name ${user[0]}
-              $GIT config user.email ${user[1]}
-              echo -e "Profile changed in: "
+        if [ "$GITREPO" = true ]; then
+          case $3 in
+            -l | --list)
+              print_list_profile "$COMMITER"
+            ;;
+            -u | --use)
+              trap 'interrupt "Profile not changed" ' INT
+              print_list_profile "$COMMITER"
+              while [ 1 ]
+              do
+                read -p "Choice profile: " idC
+                if [[ $idC =~ ^[0-9]+$ ]] && [ $idC -ne 0 ] && [ $idC -le $id ]; then
+                  break
+                else
+                  echo -e "Invalid id"
+                fi
+              done
+              i=$(($idC - 1))
+              commiter=($COMMITER)
+              IFS=':' read -a user <<< "${commiter[$i]}"
               print_profile ${user[0]} ${user[1]}
-            else
-              interrupt "Profile not changed"
-            fi
-          ;;
-          "")
-            print_list_profile "$COMMITER"
-          ;;
-          *)
-            echo -e "$NEWGIT --log: '$3' is not a $NEWGIT --log command. See '$NEWGIT -h'."
-          ;;
-        esac
+              read -p "Configure with this profile (yes/no)? " choice
+              if [ "$choice" = "yes" ] || [ "$choice" = "y" ]; then
+                $GIT config user.name ${user[0]}
+                $GIT config user.email ${user[1]}
+                echo -e "Profile changed in: "
+                print_profile ${user[0]} ${user[1]}
+              else
+                interrupt "Profile not changed"
+              fi
+            ;;
+            "")
+              print_list_profile "$COMMITER"
+            ;;
+            *)
+              echo -e "$NEWGIT --log: '$3' is not a $NEWGIT --log command. See '$NEWGIT -h'."
+            ;;
+          esac
+        else
+          $GIT "log"
+        fi
       ;;
       -s | --save)
         check_file
