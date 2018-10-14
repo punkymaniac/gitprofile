@@ -79,7 +79,7 @@ print_list_profile() {
 
 GIT="/usr/bin/git"
 NEWGIT="git profile"
-VERSION="$NEWGIT version 1.0.1"
+VERSION="$NEWGIT version 1.0.2"
 FILE="$HOME/.gitprofile"
 
 COMMITER=$($GIT log --all --pretty=format:"%cn:%ce" | sort | uniq | tr '\n' ';' | rev | cut -c 2- | rev)
@@ -147,6 +147,9 @@ case $1 in
             else
               interrupt "Profile not changed"
             fi
+          ;;
+          *)
+            echo -e "$NEWGIT: '$3' is not a $NEWGIT command. See '$NEWGIT -h'."
           ;;
         esac
       ;;
