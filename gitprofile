@@ -14,9 +14,9 @@ print_help() {
   -n --new:\t\tadd a new profile\n \
   -l --list:\t\tlist saved profile\n \
   -d --delete:\t\tdelete one profile\n\n \
-  log:\toption based on git log\n \
-    -l --list:\t\tlist commiter profile in project\n \
-    -u --use:\t\tuse commiter profile\n\n \
+  --log:\t\toption based on git log\n \
+     -l --list:\tlist commiter profile in project\n \
+     -u --use:\t\tuse commiter profile\n\n \
   And all git command (git --help)."
 }
 
@@ -117,7 +117,7 @@ case $1 in
       -h | --help)
         print_help
       ;;
-      log)
+      --log)
         case $3 in
           -l | --list)
             print_list_profile "$COMMITER"
@@ -148,8 +148,11 @@ case $1 in
               interrupt "Profile not changed"
             fi
           ;;
+          "")
+            print_list_profile "$COMMITER"
+          ;;
           *)
-            echo -e "$NEWGIT: '$3' is not a $NEWGIT command. See '$NEWGIT -h'."
+            echo -e "$NEWGIT --log: '$3' is not a $NEWGIT --log command. See '$NEWGIT -h'."
           ;;
         esac
       ;;
