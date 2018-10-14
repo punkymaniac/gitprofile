@@ -1,22 +1,22 @@
 #!/bin/bash
 ### function ###
-abort_commit() {
-  echo -e "\nNo commited"
-  exit 0
-}
 
-abort_profile() {
-  echo -e "\nProfile not changed"
+interrupt() {
+  echo -e "\n$1"
   exit 0
 }
 
 print_help() {
   echo -e \
   "usage: $NEWGIT [OPTION]\n \
-  -h:\thelp of $NEWGIT\n\n \
-  profile:\n \
-  -l --list:\tlist commiter profile in project\n \
-  -m --modify:\tmodify commiter with commiter in the list\n\n \
+  -h --help:\t\thelp of $NEWGIT\n\n \
+  -s --save:\t\tsave the current profile\n \
+  -n --new:\t\tadd a new profile\n \
+  -l --list:\t\tlist saved profile\n \
+  -d --delete:\t\tdelete one profile\n\n \
+  log:\toption based on git log\n \
+    -l --list:\t\tlist commiter profile in project\n \
+    -u --use:\t\tuse commiter profile\n\n \
   And all git command (git --help)."
 }
 
@@ -32,27 +32,57 @@ print_profile() {
   echo -e "  -> user.email: \033[36m$email\033[0m"
 }
 
-getCommiter() {
-  commiter=$($GIT log --pretty=format:"%cn:%ce;" |tr ";" "\n"|sort|uniq|tr "\n" ";"|cut -c 2-|rev|cut -c 2-|rev)
-  i=0
-  IFS=";"
-  for profil in $commiter
+check_file() {
+  if [ -e "$FILE" ]; then
+    if ! [ -f "$FILE" ]; then
+      echo -e "$FILE: is not a valid file"
+      exit 1
+    fi
+  else
+    touch -- "$FILE"
+  fi
+}
+
+add_profile() {
+  newProfile="$1"
+  IFS=':' read -a new <<< "$1"
+  newName=${new[0]}
+  newMail=${new[1]}
+  listProfile=$(<$FILE)
+  for profile in $listProfile
   do
-    i=$(($i + 1))
-    IFS=':' read -a user <<< "${profil}"
-    if [ "${user[0]}" = "$NAME" ] && [ "${user[1]}" = "$EMAIL" ];then
-      echo -e "\033[32m [$i] : ${user[0]} <${user[1]}>\033[0m"
+    if [ "$profile" = "$newProfile" ]; then
+      echo -e "This profile is already saved"
+      exit 0
+    fi
+  done
+  echo -e "$newName:$newMail" >> "$FILE"
+}
+
+print_list_profile() {
+  id=0
+  IFS=";"
+  for profil in $1
+  do
+    id=$(($id + 1))
+    IFS=':' read -a p <<< "${profil}"
+    if [ "${p[0]}" = "$NAME" ] && [ "${p[1]}" = "$EMAIL" ];then
+      echo -e "\033[32m [$id] ${p[0]} <${p[1]}>\033[0m"
     else
-      echo -e " [$i] : ${user[0]} <${user[1]}>"
+      echo -e " [$id] ${p[0]} <${p[1]}>"
     fi
   done
 }
+
 ### end function ###
 
 
 GIT="/usr/bin/git"
-NEWGIT="gitprofile"
+NEWGIT="git profile"
 VERSION="$NEWGIT version 1.0"
+FILE="$HOME/.gitprofile"
+
+COMMITER=$($GIT log --all --pretty=format:"%cn:%ce" | sort | uniq | tr '\n' ';' | rev | cut -c 2- | rev)
 
 NAME=`$GIT config --get user.name`
 EMAIL=`$GIT config --get user.email`
@@ -69,11 +99,8 @@ case $1 in
     $GIT --version
     echo -e $VERSION
   ;;
-  -h)
-    print_help
-  ;;
   commit)
-    trap abort_commit INT
+    trap 'interrupt "No commited"' INT
     echo -e "###\033[31m WARNING \033[0m###"
     echo -e "Your commit profile:"
     print_profile
@@ -82,38 +109,114 @@ case $1 in
     if [ "$choice" = "$confirm" ]; then
       $GIT "$@"
     else
-      abort_commit
+      interrupt "No commited"
     fi
   ;;
   profile)
-    trap abort_profile INT
     case $2 in
-      -l | --list)
-        getCommiter
+      -h | --help)
+        print_help
       ;;
-      -m | --modify)
-        getCommiter
-        choice="a"
+      log)
+        case $3 in
+          -l | --list)
+            print_list_profile $COMMITER
+          ;;
+          -u | --use)
+            trap 'interrupt "Profile not changed" ' INT
+            print_list_profile $COMMITER
+            while [ 1 ]
+            do
+              read -p "Choice profile: " idC
+              if [[ $idC =~ ^[0-9]+$ ]] && [ $idC -ne 0 ] && [ $idC -le $id ]; then
+                break
+              else
+                echo -e "Invalid id"
+              fi
+            done
+            i=$(($idC - 1))
+            commiter=($COMMITER)
+            IFS=':' read -a user <<< "${commiter[$i]}"
+            print_profile ${user[0]} ${user[1]}
+            read -p "Configure with this profile (yes/no)? " choice
+            if [ "$choice" = "yes" ] || [ "$choice" = "y" ]; then
+              $GIT config user.name ${user[0]}
+              $GIT config user.email ${user[1]}
+              echo -e "Profile changed in: "
+              print_profile ${user[0]} ${user[1]}
+            else
+              interrupt "Profile not changed"
+            fi
+          ;;
+        esac
+      ;;
+      -s | --save)
+        check_file
+        add_profile "$NAME:$EMAIL"
+      ;;
+      -n | --new)
+        trap 'interrupt "No profile added"' INT
+        check_file
         while [ 1 ]
         do
-          if ! [ $choice -eq $choice 2> /dev/null ]; then
-            read -p "Choice profile: " choice
-          else
+          read -p "user.name: " newName
+          if ! [ -z "$newName" ]; then
             break
           fi
         done
-        i=$(($choice - 1))
-        commiter=($commiter)
-        IFS=':' read -a user <<< "${commiter[$i]}"
-        print_profile ${user[0]} ${user[1]}
-        read -p "Configure with this profile (yes/no)? " choice
-        if [ "$choice" = "yes" ]; then
-          $GIT config user.name ${user[0]}
-          $GIT config user.email ${user[1]}
-          echo -e "Profile changed in: "
-          print_profile ${user[0]} ${user[1]}
+        while [ 1 ]
+        do
+          read -p "user.email: " newEmail
+          if ! [ -z "$newEmail" ]; then
+            break
+          fi
+        done
+        add_profile "$newName:$newEmail"
+      ;;
+      -l | --list)
+        if [ -e "$FILE" ]; then
+          listProfile=$(cat "$FILE" | tr '\n' ';' | cut -c 2- | rev | cut -c 2- | rev)
         else
-          abort_profile
+          listProfile=""
+        fi
+        if [ -z "$listProfile" ]; then
+          echo -e "No profile saved"
+        else
+          print_list_profile $listProfile
+        fi
+      ;;
+      -d | --delete)
+        trap 'interrupt "No profile deleted"' INT
+        if [ -e "$FILE" ]; then
+          listProfile=$(cat "$FILE" | tr '\n' ';' | cut -c 2- | rev | cut -c 2- | rev)
+        else
+          listProfile=""
+        fi
+        if [ -z "$listProfile" ]; then
+          echo -e "No profile saved"
+        else
+          print_list_profile $listProfile
+          while [ 1 ]
+          do
+            read -p "profile to delete: " idD
+            if [[ $idC =~ ^[0-9]+$ ]] &&  [ $idD -ne 0 ] && [ $idD -le $id ]; then
+              break
+            else
+              echo -e "Invalid id"
+            fi
+          done
+          i=0
+          # reset file
+          echo -e "" > "$FILE"
+          for profile in $listProfile
+          do
+            i=$(($i + 1))
+            if [ $i -eq $idD ]; then
+              echo -e "Delete: $profile"
+            else
+              add_profile $profile
+            fi
+          done
         fi
       ;;
       "")
