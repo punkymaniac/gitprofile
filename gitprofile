@@ -95,7 +95,7 @@ select_profile() {
 
 GIT="/usr/bin/git"
 NEWGIT="git profile"
-VERSION="$NEWGIT version 1.0.2"
+VERSION="$NEWGIT version 0.2"
 FILE="$HOME/.gitprofile"
 
 DIR=$($GIT rev-parse --git-dir 2>/dev/null)
