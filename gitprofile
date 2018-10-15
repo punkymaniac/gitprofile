@@ -49,6 +49,7 @@ add_profile() {
   newName=${new[0]}
   newMail=${new[1]}
   listProfile=$(<$FILE)
+  IFS=$'\n'
   for profile in $listProfile
   do
     if [ "$profile" = "$newProfile" ]; then
