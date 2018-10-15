@@ -39,7 +39,7 @@ check_file() {
       exit 1
     fi
   else
-    touch -- "$FILE"
+    echo -e "" > "$FILE"
   fi
 }
 
