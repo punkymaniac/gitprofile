@@ -65,6 +65,31 @@ print_list_profile() {
   done
 }
 
+select_profile() {
+  while [ 1 ]
+  do
+    read -p "Choice profile: " idC
+    if [[ $idC =~ ^[0-9]+$ ]] && [ $idC -ne 0 ] && [ $idC -le $id ]; then
+      break
+    else
+      echo -e "Invalid id"
+    fi
+  done
+  i=$(($idC - 1))
+  profiles=($1)
+  IFS=':' read -a p <<< "${profiles[$i]}"
+  print_profile ${p[0]} ${p[1]}
+  read -p "Configure with this profile (yes/no)? " choice
+  if [ "$choice" = "yes" ] || [ "$choice" = "y" ]; then
+    $GIT config user.name ${p[0]}
+    $GIT config user.email ${p[1]}
+    echo -e "Profile changed in: "
+    print_profile ${p[0]} ${p[1]}
+  else
+    interrupt "Profile not changed"
+  fi
+}
+
 ### end function ###
 
 
@@ -139,28 +164,7 @@ case $1 in
             -u | --use)
               trap 'interrupt "Profile not changed" ' INT
               print_list_profile "$COMMITER"
-              while [ 1 ]
-              do
-                read -p "Choice profile: " idC
-                if [[ $idC =~ ^[0-9]+$ ]] && [ $idC -ne 0 ] && [ $idC -le $id ]; then
-                  break
-                else
-                  echo -e "Invalid id"
-                fi
-              done
-              i=$(($idC - 1))
-              commiter=($COMMITER)
-              IFS=':' read -a user <<< "${commiter[$i]}"
-              print_profile ${user[0]} ${user[1]}
-              read -p "Configure with this profile (yes/no)? " choice
-              if [ "$choice" = "yes" ] || [ "$choice" = "y" ]; then
-                $GIT config user.name ${user[0]}
-                $GIT config user.email ${user[1]}
-                echo -e "Profile changed in: "
-                print_profile ${user[0]} ${user[1]}
-              else
-                interrupt "Profile not changed"
-              fi
+              select_profile "$COMMITER"
             ;;
             "")
               print_list_profile "$COMMITER"
@@ -242,28 +246,7 @@ case $1 in
           echo -e "No profile saved"
         else
           print_list_profile "$SAVEDPROFILE"
-          while [ 1 ]
-          do
-            read -p "Choice profile: " idC
-            if [[ $idC =~ ^[0-9]+$ ]] && [ $idC -ne 0 ] && [ $idC -le $id ]; then
-              break
-            else
-              echo -e "Invalid id"
-            fi
-          done
-          i=$(($idC - 1))
-          profiles=($SAVEDPROFILE)
-          IFS=':' read -a p <<< "${profiles[$i]}"
-          print_profile ${p[0]} ${p[1]}
-          read -p "Configure with this profile (yes/no)? " choice
-          if [ "$choice" = "yes" ] || [ "$choice" = "y" ]; then
-            $GIT config user.name ${p[0]}
-            $GIT config user.email ${p[1]}
-            echo -e "Profile changed in: "
-            print_profile ${p[0]} ${p[1]}
-          else
-            interrupt "Profile not changed"
-          fi
+          select_profile "$SAVEDPROFILE"
         fi
       ;;
       "")
