@@ -203,7 +203,7 @@ case $1 in
         if [ -z "$listProfile" ]; then
           echo -e "No profile saved"
         else
-          print_list_profile $listProfile
+          print_list_profile "$listProfile"
         fi
       ;;
       -d | --delete)
@@ -216,11 +216,11 @@ case $1 in
         if [ -z "$listProfile" ]; then
           echo -e "No profile saved"
         else
-          print_list_profile $listProfile
+          print_list_profile "$listProfile"
           while [ 1 ]
           do
             read -p "profile to delete: " idD
-            if [[ $idC =~ ^[0-9]+$ ]] &&  [ $idD -ne 0 ] && [ $idD -le $id ]; then
+            if [[ $idD =~ ^[0-9]+$ ]] && [ $idD -ne 0 ] && [ $idD -le $id ]; then
               break
             else
               echo -e "Invalid id"
@@ -235,7 +235,7 @@ case $1 in
             if [ $i -eq $idD ]; then
               echo -e "Delete: $profile"
             else
-              add_profile $profile
+              add_profile "$profile"
             fi
           done
         fi
