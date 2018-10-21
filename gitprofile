@@ -98,6 +98,13 @@ NEWGIT="git profile"
 VERSION="$NEWGIT version 0.2"
 FILE="$HOME/.gitprofile"
 
+COMMIT_CHECK=$(printenv COMMIT_CHECK)
+if [ "$?" -eq 1 ]; then
+  COMMIT_CHECK=true
+else
+  COMMIT_CHECK=false
+fi
+
 DIR=$($GIT rev-parse --git-dir 2>/dev/null)
 if [ "$?" -eq 0 ]; then
   GITREPO=true
@@ -135,7 +142,7 @@ case $1 in
     echo -e $VERSION
   ;;
   commit)
-    if [ "$GITREPO" = true ]; then
+    if [ "$GITREPO" = true ] && [ "$COMMIT_CHECK" = true ]; then
       trap 'interrupt "No commited"' INT
       echo -e "###\033[31m WARNING \033[0m###"
       echo -e "Your commit profile:"
