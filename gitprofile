@@ -142,7 +142,8 @@ case $1 in
     echo -e $VERSION
   ;;
   commit)
-    if [ "$GITREPO" = true ] && [ "$COMMIT_CHECK" = true ]; then
+    STAGED=$($GIT diff --staged --exit-code)
+    if [ "$?" -ne 0 ] && [ "$GITREPO" = true ] && [ "$COMMIT_CHECK" = true ]; then
       trap 'interrupt "No commited"' INT
       echo -e "###\033[31m WARNING \033[0m###"
       echo -e "Your commit profile:"
