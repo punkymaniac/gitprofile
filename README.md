@@ -14,6 +14,9 @@ A simple git profile management.
 
 ## Getting Started
 
+### Requirements
+You need git to use gitprofile.
+
 ### Installing
 ```
 mkdir $HOME/.bin

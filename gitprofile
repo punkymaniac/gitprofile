@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 ### function ###
 
 interrupt() {
@@ -95,14 +95,28 @@ select_profile() {
 
 GIT="/usr/bin/git"
 NEWGIT="git profile"
-VERSION="$NEWGIT version 0.2"
+VERSION="$NEWGIT version 0.2.1"
 FILE="$HOME/.gitprofile"
+
+COMMIT_CHECK=$(printenv COMMIT_CHECK)
+if [ "$?" -eq 1 ]; then
+  COMMIT_CHECK=true
+else
+  COMMIT_CHECK=false
+fi
 
 DIR=$($GIT rev-parse --git-dir 2>/dev/null)
 if [ "$?" -eq 0 ]; then
   GITREPO=true
 else
   GITREPO=false
+fi
+
+HEAD=$($GIT rev-parse HEAD 2>/dev/null)
+if [ "$?" -eq 0 ]; then
+  GITHEAD=true
+else
+  GITEAD=false
 fi
 
 if [ "$GITREPO" = true ]; then
@@ -135,7 +149,8 @@ case $1 in
     echo -e $VERSION
   ;;
   commit)
-    if [ "$GITREPO" = true ]; then
+    STAGED=$($GIT diff --staged --exit-code)
+    if [ "$?" -ne 0 ] && [ "$GITREPO" = true ] && [ "$COMMIT_CHECK" = true ]; then
       trap 'interrupt "No commited"' INT
       echo -e "###\033[31m WARNING \033[0m###"
       echo -e "Your commit profile:"
@@ -157,7 +172,7 @@ case $1 in
         print_help
       ;;
       --log)
-        if [ "$GITREPO" = true ]; then
+        if [ "$GITHEAD" = true ]; then
           case $3 in
             -l | --list)
               print_list_profile "$COMMITER"
@@ -242,12 +257,16 @@ case $1 in
         fi
       ;;
       -u | --use)
-        trap 'interrupt "Profile not changed" ' INT
-        if [ -z "$SAVEDPROFILE" ]; then
-          echo -e "No profile saved"
+        if [ "$GITREPO" = true ]; then
+          trap 'interrupt "Profile not changed" ' INT
+          if [ -z "$SAVEDPROFILE" ]; then
+            echo -e "No profile saved"
+          else
+            print_list_profile "$SAVEDPROFILE"
+            select_profile "$SAVEDPROFILE"
+          fi
         else
-          print_list_profile "$SAVEDPROFILE"
-          select_profile "$SAVEDPROFILE"
+          $GIT config user.name ""
         fi
       ;;
       "")
