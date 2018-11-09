@@ -95,7 +95,7 @@ select_profile() {
 
 GIT="/usr/bin/git"
 NEWGIT="git profile"
-VERSION="$NEWGIT version 0.2"
+VERSION="$NEWGIT version 0.2.1"
 FILE="$HOME/.gitprofile"
 
 COMMIT_CHECK=$(printenv COMMIT_CHECK)
