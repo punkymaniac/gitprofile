@@ -95,7 +95,7 @@ select_profile() {
 
 GIT="/usr/bin/git"
 NEWGIT="git profile"
-VERSION="$NEWGIT version 0.2.1"
+VERSION="$NEWGIT version 0.2.2"
 FILE="$HOME/.gitprofile"
 
 COMMIT_CHECK=$(printenv COMMIT_CHECK)
@@ -120,7 +120,9 @@ else
 fi
 
 if [ "$GITREPO" = true ]; then
-  COMMITER=$($GIT log --all --pretty=format:"%cn:%ce" | sort | uniq | tr '\n' ';' | rev | cut -c 2- | rev)
+  if [ "$GITHEAD" = true ]; then
+    COMMITER=$($GIT log --all --pretty=format:"%cn:%ce" | sort | uniq | tr '\n' ';' | rev | cut -c 2- | rev)
+  fi
   NAME=`$GIT config --get user.name`
   EMAIL=`$GIT config --get user.email`
 fi
