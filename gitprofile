@@ -9,12 +9,12 @@ interrupt() {
 print_help() {
   echo -e \
   "usage: $NEWGIT [OPTION]\n \
-  -h --help:\t\thelp of $NEWGIT\n\n \
+  -h --help:\t\thelp of $NEWGIT\n \
   -s --save:\t\tsave the current profile\n \
   -n --new:\t\tadd a new profile\n \
   -l --list:\t\tlist saved profile\n \
   -d --delete:\t\tdelete one profile\n \
-  -u --use\t\tuse one profile saved\n\n \
+  -u --use\t\tuse one profile saved\n \
   log:\t\toption based on git log\n \
      -l --list:\tlist commiter profile in project\n \
      -u --use:\t\tuse commiter profile\n \
