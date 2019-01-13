@@ -15,6 +15,7 @@ print_help() {
   -l --list:\t\tlist saved profile\n \
   -d --delete:\t\tdelete one profile\n \
   -u --use\t\tuse one profile saved\n \
+  reset:\treset current profile\n \
   log:\t\toption based on git log\n \
      -l --list:\tlist commiter profile in project\n \
      -u --use:\t\tuse commiter profile\n \
@@ -177,6 +178,17 @@ case $1 in
     case $2 in
       -h | --help)
         print_help
+      ;;
+      reset)
+        if [ "$GITREPO" = true ]; then
+          trap 'interrupt "Profile not reset" ' INT
+          read -p "Reset your profile (yes/no)? " choice
+          if [ "$choice" = "yes" ] || [ "$choice" = "y" ]; then
+            $GIT config --unset user.name
+            $GIT config --unset user.email
+            print_profile "$USER" "$USER@`hostname`"
+          fi
+        fi
       ;;
       log)
         if [ "$GITHEAD" = true ]; then
