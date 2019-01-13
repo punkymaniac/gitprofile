@@ -17,7 +17,8 @@ print_help() {
   -u --use\t\tuse one profile saved\n\n \
   log:\t\toption based on git log\n \
      -l --list:\tlist commiter profile in project\n \
-     -u --use:\t\tuse commiter profile\n\n \
+     -u --use:\t\tuse commiter profile\n \
+     -s --save:\tsave commiter profile\n\n \
   And all git command (git --help)."
 }
 
@@ -77,7 +78,11 @@ select_profile() {
   done
   i=$(($idC - 1))
   profiles=($1)
-  IFS=':' read -a p <<< "${profiles[$i]}"
+  IFS=':' read -a profile <<< "${profiles[$i]}"
+}
+
+use_profile() {
+  IFS=':' read -a p <<< "$1"
   print_profile ${p[0]} ${p[1]}
   read -p "Configure with this profile (yes/no)? " choice
   if [ "$choice" = "yes" ] || [ "$choice" = "y" ]; then
@@ -183,9 +188,19 @@ case $1 in
               trap 'interrupt "Profile not changed" ' INT
               print_list_profile "$COMMITER"
               select_profile "$COMMITER"
+              use_profile "${profile[0]}:${profile[1]}"
             ;;
             "")
               print_list_profile "$COMMITER"
+            ;;
+            -s | --save)
+              if ! [ -e "$FILE" ]; then
+                echo -e "" > "$FILE"
+              fi
+              print_list_profile "$COMMITER"
+              select_profile "$COMMITER"
+              print_profile "${profile[0]}" "${profile[1]}"
+              add_profile "${profile[0]}:${profile[1]}"
             ;;
             *)
               echo -e "$NEWGIT --log: '$3' is not a $NEWGIT --log command. See '$NEWGIT -h'."
@@ -266,6 +281,7 @@ case $1 in
           else
             print_list_profile "$SAVEDPROFILE"
             select_profile "$SAVEDPROFILE"
+            use_profile "${profile[0]}:${profile[1]}"
           fi
         else
           $GIT config user.name ""
