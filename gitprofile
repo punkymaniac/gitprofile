@@ -88,19 +88,19 @@ select_profile() {
 
 use_profile() {
   IFS=':' read -a p <<< "$1"
-  print_profile ${p[0]} ${p[1]} ${p[2]}
+  print_profile "${p[0]}" "${p[1]}" "${p[2]}"
   read -p "Configure with this profile (yes/no)? " choice
   if [ "$choice" = "yes" ] || [ "$choice" = "y" ]; then
-    $GIT config user.name ${p[0]}
-    $GIT config user.email ${p[1]}
+    $GIT config user.name "${p[0]}"
+    $GIT config user.email "${p[1]}"
     echo -e "${p[2]}"
     if ! [ -z "${p[2]}" ]; then
-      $GIT config user.signingKey ${p[2]}
+      $GIT config user.signingKey "${p[2]}"
     else
       $GIT config --unset user.signingKey
     fi
     echo -e "Profile changed in: "
-    print_profile ${p[0]} ${p[1]} ${p[2]}
+    print_profile "${p[0]}" "${p[1]}" "${p[2]}"
   else
     interrupt "Profile not changed"
   fi
