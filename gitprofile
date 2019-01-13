@@ -42,9 +42,9 @@ add_profile() {
   newMail=${new[1]}
   listProfile=$(<$FILE)
   IFS=$'\n'
-  for profile in $listProfile
+  for item in $listProfile
   do
-    if [ "$profile" = "$newProfile" ]; then
+    if [ "$item" = "$newProfile" ]; then
       echo -e "This profile is already saved"
       exit 0
     fi
@@ -55,10 +55,10 @@ add_profile() {
 print_list_profile() {
   id=0
   IFS=";"
-  for profil in $1
+  for item in $1
   do
     id=$(($id + 1))
-    IFS=':' read -a p <<< "${profil}"
+    IFS=':' read -a p <<< "${item}"
     if [ "${p[0]}" = "$NAME" ] && [ "${p[1]}" = "$EMAIL" ];then
       echo -e "\033[32m [$id] ${p[0]} <${p[1]}>\033[0m"
     else
