@@ -283,8 +283,6 @@ case $1 in
             select_profile "$SAVEDPROFILE"
             use_profile "${profile[0]}:${profile[1]}"
           fi
-        else
-          $GIT config user.name ""
         fi
       ;;
       "")
