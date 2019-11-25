@@ -9,58 +9,64 @@ interrupt() {
 print_help() {
   echo -e \
   "usage: $NEWGIT [OPTION]\n \
-  -h --help:\t\thelp of $NEWGIT\n\n \
+  -h --help:\t\thelp of $NEWGIT\n \
   -s --save:\t\tsave the current profile\n \
   -n --new:\t\tadd a new profile\n \
   -l --list:\t\tlist saved profile\n \
   -d --delete:\t\tdelete one profile\n \
-  -u --use\t\tuse one profile saved\n\n \
-  --log:\t\toption based on git log\n \
+  -u --use\t\tuse one profile saved\n \
+  reset:\treset current profile\n \
+  log:\t\toption based on git log\n \
      -l --list:\tlist commiter profile in project\n \
-     -u --use:\t\tuse commiter profile\n\n \
+     -u --use:\t\tuse commiter profile\n \
+     -s --save:\tsave commiter profile\n\n \
   And all git command (git --help)."
 }
 
 print_profile() {
-  if [ -z $1 ] && [ -z $2 ]; then
+  if [ -z $1 ] && [ -z $2 ] && [ -z $3] ; then
     name=$NAME
     email=$EMAIL
+    key=$KEY
   else
     name=$1
     email=$2
+    key=$3
   fi
   echo -e "  -> user.name: \033[36m$name\033[0m"
   echo -e "  -> user.email: \033[36m$email\033[0m"
+  echo -e "  -> user.signingKey: \033[36m$key\033[0m"
 }
 
 add_profile() {
-  newProfile="$1"
   IFS=':' read -a new <<< "$1"
   newName=${new[0]}
   newMail=${new[1]}
+  newKey=${new[2]}
   listProfile=$(<$FILE)
   IFS=$'\n'
-  for profile in $listProfile
+  for item in $listProfile
   do
-    if [ "$profile" = "$newProfile" ]; then
+    IFS=':' read -a p <<< "${item}"
+    if [ "${p[0]}:${p[1]}:${p[2]}" = "$newName:$newMail:$newKey" ]; then
       echo -e "This profile is already saved"
       exit 0
     fi
   done
-  echo -e "$newName:$newMail" >> "$FILE"
+  echo -e "$newName:$newMail:$newKey:" >> "$FILE"
 }
 
 print_list_profile() {
   id=0
   IFS=";"
-  for profil in $1
+  for item in $1
   do
     id=$(($id + 1))
-    IFS=':' read -a p <<< "${profil}"
-    if [ "${p[0]}" = "$NAME" ] && [ "${p[1]}" = "$EMAIL" ];then
-      echo -e "\033[32m [$id] ${p[0]} <${p[1]}>\033[0m"
+    IFS=':' read -a p <<< "${item}"
+    if [ "${p[0]}" = "$NAME" ] && [ "${p[1]}" = "$EMAIL" ] && [ "${p[2]}" = "$KEY" ]; then
+      echo -e "\033[32m [$id] ${p[0]} <${p[1]}> ${p[2]}\033[0m"
     else
-      echo -e " [$id] ${p[0]} <${p[1]}>"
+      echo -e " [$id] ${p[0]} <${p[1]}> ${p[2]}"
     fi
   done
 }
@@ -77,14 +83,24 @@ select_profile() {
   done
   i=$(($idC - 1))
   profiles=($1)
-  IFS=':' read -a p <<< "${profiles[$i]}"
-  print_profile ${p[0]} ${p[1]}
+  IFS=':' read -a profile <<< "${profiles[$i]}"
+}
+
+use_profile() {
+  IFS=':' read -a p <<< "$1"
+  print_profile "${p[0]}" "${p[1]}" "${p[2]}"
   read -p "Configure with this profile (yes/no)? " choice
   if [ "$choice" = "yes" ] || [ "$choice" = "y" ]; then
-    $GIT config user.name ${p[0]}
-    $GIT config user.email ${p[1]}
+    $GIT config user.name "${p[0]}"
+    $GIT config user.email "${p[1]}"
+    echo -e "${p[2]}"
+    if ! [ -z "${p[2]}" ]; then
+      $GIT config user.signingKey "${p[2]}"
+    else
+      $GIT config --unset user.signingKey
+    fi
     echo -e "Profile changed in: "
-    print_profile ${p[0]} ${p[1]}
+    print_profile "${p[0]}" "${p[1]}" "${p[2]}"
   else
     interrupt "Profile not changed"
   fi
@@ -95,7 +111,7 @@ select_profile() {
 
 GIT="/usr/bin/git"
 NEWGIT="git profile"
-VERSION="$NEWGIT version 0.2.2"
+VERSION="$NEWGIT version 0.3"
 FILE="$HOME/.gitprofile"
 
 COMMIT_CHECK=$(printenv COMMIT_CHECK)
@@ -125,6 +141,7 @@ if [ "$GITREPO" = true ]; then
   fi
   NAME=`$GIT config --get user.name`
   EMAIL=`$GIT config --get user.email`
+  KEY=`$GIT config --get user.signingKey`
 fi
 
 if [ -e "$FILE" ]; then
@@ -143,6 +160,9 @@ if [ -z "$NAME" ]; then
 fi
 if [ -z "$EMAIL" ]; then
   EMAIL="$USER"@"`hostname`"
+fi
+if [ -z "$KEY" ]; then
+  KEY=""
 fi
 
 case $1 in
@@ -173,7 +193,19 @@ case $1 in
       -h | --help)
         print_help
       ;;
-      --log)
+      reset)
+        if [ "$GITREPO" = true ]; then
+          trap 'interrupt "Profile not reset" ' INT
+          read -p "Reset your profile (yes/no)? " choice
+          if [ "$choice" = "yes" ] || [ "$choice" = "y" ]; then
+            $GIT config --unset user.name
+            $GIT config --unset user.email
+            $GIT config --unset user.signingKey
+            print_profile "$USER" "$USER@`hostname`" ""
+          fi
+        fi
+      ;;
+      log)
         if [ "$GITHEAD" = true ]; then
           case $3 in
             -l | --list)
@@ -183,9 +215,19 @@ case $1 in
               trap 'interrupt "Profile not changed" ' INT
               print_list_profile "$COMMITER"
               select_profile "$COMMITER"
+              use_profile "${profile[0]}:${profile[1]}:${profile[2]}"
             ;;
             "")
               print_list_profile "$COMMITER"
+            ;;
+            -s | --save)
+              if ! [ -e "$FILE" ]; then
+                echo -e "" > "$FILE"
+              fi
+              print_list_profile "$COMMITER"
+              select_profile "$COMMITER"
+              print_profile "${profile[0]}" "${profile[1]}" "${profile[2]}"
+              add_profile "${profile[0]}:${profile[1]}:${profile[2]}"
             ;;
             *)
               echo -e "$NEWGIT --log: '$3' is not a $NEWGIT --log command. See '$NEWGIT -h'."
@@ -199,7 +241,7 @@ case $1 in
         if ! [ -e "$FILE" ]; then
           echo -e "" > "$FILE"
         fi
-        add_profile "$NAME:$EMAIL"
+        add_profile "$NAME:$EMAIL:$KEY"
       ;;
       -n | --new)
         trap 'interrupt "No profile added"' INT
@@ -217,10 +259,22 @@ case $1 in
             break
           fi
         done
+        while [ 1 ]
+        do
+          read -p "user.signingKey: " newKey
+          if [ -z "$newKey" ]; then
+            read -p "Empty key (yes/no)? " choice
+            if [ "$choice" == "y" ] || [ "$choice" == "yes" ]; then
+              break
+            fi
+          else
+              break
+          fi
+        done
         if ! [ -e "$FILE" ]; then
           echo -e "" > "$FILE"
         fi
-        add_profile "$newName:$newEmail"
+        add_profile "$newName:$newEmail:$newKey"
       ;;
       -l | --list)
         if [ -z "$SAVEDPROFILE" ]; then
@@ -266,9 +320,8 @@ case $1 in
           else
             print_list_profile "$SAVEDPROFILE"
             select_profile "$SAVEDPROFILE"
+            use_profile "${profile[0]}:${profile[1]}:${profile[2]}"
           fi
-        else
-          $GIT config user.name ""
         fi
       ;;
       "")
