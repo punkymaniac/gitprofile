@@ -267,6 +267,8 @@ case $1 in
             if [ "$choice" == "y" ] || [ "$choice" == "yes" ]; then
               break
             fi
+          else
+              break
           fi
         done
         if ! [ -e "$FILE" ]; then
