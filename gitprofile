@@ -105,7 +105,7 @@ use_profile() {
 
 GIT=`which git`
 SCRIPT="gitprofile"
-VERSION="$SCRIPT version 0.3"
+VERSION="0.3"
 FILE="$HOME/.gitprofile"
 
 DIR=$($GIT rev-parse --git-dir 2>/dev/null)
@@ -154,7 +154,7 @@ fi
 
 case $1 in
   version)
-    echo -e $VERSION
+    echo -e "$SCRIPT version $VERSION"
   ;;
   help)
     print_help
