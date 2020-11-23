@@ -19,8 +19,7 @@ print_help() {
   log:\t\toption based on git log\n \
      -l --list:\tlist commiter profile in project\n \
      -u --use:\t\tuse commiter profile\n \
-     -s --save:\tsave commiter profile\n\n \
-  And all git command (git --help)."
+     -s --save:\tsave commiter profile\n"
 }
 
 print_profile() {
@@ -167,174 +166,146 @@ fi
 
 case $1 in
   --version | version)
-    $GIT --version
     echo -e $VERSION
   ;;
-  commit)
-    STAGED=$($GIT diff --staged --exit-code)
-    if [ "$?" -ne 0 ] && [ "$GITREPO" = true ] && [ "$COMMIT_CHECK" = true ]; then
-      trap 'interrupt "No commited"' INT
-      echo -e "###\033[31m WARNING \033[0m###"
-      echo -e "Your commit profile:"
-      print_profile
-      confirm="$NAME"
-      read -p "Confirm name [ $confirm ]? " choice
-      if [ "$choice" = "$confirm" ]; then
-        $GIT "$@"
-      else
-        interrupt "No commited"
+  -h | --help)
+    print_help
+  ;;
+  reset)
+    if [ "$GITREPO" = true ]; then
+      trap 'interrupt "Profile not reset" ' INT
+      read -p "Reset your profile (yes/no)? " choice
+      if [ "$choice" = "yes" ] || [ "$choice" = "y" ]; then
+        $GIT config --unset user.name
+        $GIT config --unset user.email
+        $GIT config --unset user.signingKey
+        print_profile "$USER" "$USER@`hostname`" ""
       fi
-    else
-      $GIT "$@"
     fi
   ;;
-  profile)
-    case $2 in
-      -h | --help)
-        print_help
-      ;;
-      reset)
-        if [ "$GITREPO" = true ]; then
-          trap 'interrupt "Profile not reset" ' INT
-          read -p "Reset your profile (yes/no)? " choice
-          if [ "$choice" = "yes" ] || [ "$choice" = "y" ]; then
-            $GIT config --unset user.name
-            $GIT config --unset user.email
-            $GIT config --unset user.signingKey
-            print_profile "$USER" "$USER@`hostname`" ""
-          fi
-        fi
-      ;;
-      log)
-        if [ "$GITHEAD" = true ]; then
-          case $3 in
-            -l | --list)
-              print_list_profile "$COMMITER"
-            ;;
-            -u | --use)
-              trap 'interrupt "Profile not changed" ' INT
-              print_list_profile "$COMMITER"
-              select_profile "$COMMITER"
-              use_profile "${profile[0]}:${profile[1]}:${profile[2]}"
-            ;;
-            "")
-              print_list_profile "$COMMITER"
-            ;;
-            -s | --save)
-              if ! [ -e "$FILE" ]; then
-                echo -e "" > "$FILE"
-              fi
-              print_list_profile "$COMMITER"
-              select_profile "$COMMITER"
-              print_profile "${profile[0]}" "${profile[1]}" "${profile[2]}"
-              add_profile "${profile[0]}:${profile[1]}:${profile[2]}"
-            ;;
-            *)
-              echo -e "$NEWGIT --log: '$3' is not a $NEWGIT --log command. See '$NEWGIT -h'."
-            ;;
-          esac
-        else
-          $GIT "log"
-        fi
-      ;;
-      -s | --save)
-        if ! [ -e "$FILE" ]; then
-          echo -e "" > "$FILE"
-        fi
-        add_profile "$NAME:$EMAIL:$KEY"
-      ;;
-      -n | --new)
-        trap 'interrupt "No profile added"' INT
-        while [ 1 ]
-        do
-          read -p "user.name: " newName
-          if ! [ -z "$newName" ]; then
-            break
-          fi
-        done
-        while [ 1 ]
-        do
-          read -p "user.email: " newEmail
-          if ! [ -z "$newEmail" ]; then
-            break
-          fi
-        done
-        while [ 1 ]
-        do
-          read -p "user.signingKey: " newKey
-          if [ -z "$newKey" ]; then
-            read -p "Empty key (yes/no)? " choice
-            if [ "$choice" == "y" ] || [ "$choice" == "yes" ]; then
-              break
-            fi
-          else
-              break
-          fi
-        done
-        if ! [ -e "$FILE" ]; then
-          echo -e "" > "$FILE"
-        fi
-        add_profile "$newName:$newEmail:$newKey"
-      ;;
-      -l | --list)
-        if [ -z "$SAVEDPROFILE" ]; then
-          echo -e "No profile saved"
-        else
-          print_list_profile "$SAVEDPROFILE"
-        fi
-      ;;
-      -d | --delete)
-        trap 'interrupt "No profile deleted"' INT
-        if [ -z "$SAVEDPROFILE" ]; then
-          echo -e "No profile saved"
-        else
-          print_list_profile "$SAVEDPROFILE"
-          while [ 1 ]
-          do
-            read -p "profile to delete: " idD
-            if [[ $idD =~ ^[0-9]+$ ]] && [ $idD -ne 0 ] && [ $idD -le $id ]; then
-              break
-            else
-              echo -e "Invalid id"
-            fi
-          done
-          i=0
-          # reset file
-          echo -e "" > "$FILE"
-          for profile in $SAVEDPROFILE
-          do
-            i=$(($i + 1))
-            if [ $i -eq $idD ]; then
-              echo -e "Delete: $profile"
-            else
-              add_profile "$profile"
-            fi
-          done
-        fi
-      ;;
-      -u | --use)
-        if [ "$GITREPO" = true ]; then
+  log)
+    if [ "$GITHEAD" = true ]; then
+      case $3 in
+        -l | --list)
+          print_list_profile "$COMMITER"
+        ;;
+        -u | --use)
           trap 'interrupt "Profile not changed" ' INT
-          if [ -z "$SAVEDPROFILE" ]; then
-            echo -e "No profile saved"
-          else
-            print_list_profile "$SAVEDPROFILE"
-            select_profile "$SAVEDPROFILE"
-            use_profile "${profile[0]}:${profile[1]}:${profile[2]}"
+          print_list_profile "$COMMITER"
+          select_profile "$COMMITER"
+          use_profile "${profile[0]}:${profile[1]}:${profile[2]}"
+        ;;
+        "")
+          print_list_profile "$COMMITER"
+        ;;
+        -s | --save)
+          if ! [ -e "$FILE" ]; then
+            echo -e "" > "$FILE"
           fi
+          print_list_profile "$COMMITER"
+          select_profile "$COMMITER"
+          print_profile "${profile[0]}" "${profile[1]}" "${profile[2]}"
+          add_profile "${profile[0]}:${profile[1]}:${profile[2]}"
+        ;;
+        *)
+          echo -e "$NEWGIT log: '$2' is not a $NEWGIT log command. See '$NEWGIT help'."
+        ;;
+      esac
+    fi
+  ;;
+  -s | --save)
+    if ! [ -e "$FILE" ]; then
+      echo -e "" > "$FILE"
+    fi
+    add_profile "$NAME:$EMAIL:$KEY"
+  ;;
+  -n | --new)
+    trap 'interrupt "No profile added"' INT
+    while [ 1 ]
+    do
+      read -p "user.name: " newName
+      if ! [ -z "$newName" ]; then
+        break
+      fi
+    done
+    while [ 1 ]
+    do
+      read -p "user.email: " newEmail
+      if ! [ -z "$newEmail" ]; then
+        break
+      fi
+    done
+    while [ 1 ]
+    do
+      read -p "user.signingKey: " newKey
+      if [ -z "$newKey" ]; then
+        read -p "Empty key (yes/no)? " choice
+        if [ "$choice" == "y" ] || [ "$choice" == "yes" ]; then
+          break
         fi
-      ;;
-      "")
-        echo -e "Your profile:"
-        print_profile
-      ;;
-      *)
-        echo -e "$NEWGIT: '$2' is not a $NEWGIT command. See '$NEWGIT -h'."
-      ;;
-    esac
+      else
+        break
+      fi
+    done
+    if ! [ -e "$FILE" ]; then
+      echo -e "" > "$FILE"
+    fi
+    add_profile "$newName:$newEmail:$newKey"
+  ;;
+  -l | --list)
+    if [ -z "$SAVEDPROFILE" ]; then
+      echo -e "No profile saved"
+    else
+      print_list_profile "$SAVEDPROFILE"
+    fi
+  ;;
+  -d | --delete)
+    trap 'interrupt "No profile deleted"' INT
+    if [ -z "$SAVEDPROFILE" ]; then
+      echo -e "No profile saved"
+    else
+      print_list_profile "$SAVEDPROFILE"
+      while [ 1 ]
+      do
+        read -p "profile to delete: " idD
+        if [[ $idD =~ ^[0-9]+$ ]] && [ $idD -ne 0 ] && [ $idD -le $id ]; then
+          break
+        else
+          echo -e "Invalid id"
+        fi
+      done
+      i=0
+      # reset file
+      echo -e "" > "$FILE"
+      for profile in $SAVEDPROFILE
+      do
+        i=$(($i + 1))
+        if [ $i -eq $idD ]; then
+          echo -e "Delete: $profile"
+        else
+          add_profile "$profile"
+        fi
+      done
+    fi
+  ;;
+  -u | --use)
+    if [ "$GITREPO" = true ]; then
+      trap 'interrupt "Profile not changed" ' INT
+      if [ -z "$SAVEDPROFILE" ]; then
+        echo -e "No profile saved"
+      else
+        print_list_profile "$SAVEDPROFILE"
+        select_profile "$SAVEDPROFILE"
+        use_profile "${profile[0]}:${profile[1]}:${profile[2]}"
+      fi
+    fi
+  ;;
+  "")
+    echo -e "Your profile:"
+    print_profile
   ;;
   *)
-    $GIT "$@"
+    echo -e "$NEWGIT: '$1' is not a $NEWGIT command. See '$NEWGIT help'."
   ;;
 esac
 
