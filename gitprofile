@@ -108,13 +108,6 @@ SCRIPT="gitprofile"
 VERSION="$SCRIPT version 0.3"
 FILE="$HOME/.gitprofile"
 
-COMMIT_CHECK=$(printenv COMMIT_CHECK)
-if [ "$?" -eq 1 ]; then
-  COMMIT_CHECK=true
-else
-  COMMIT_CHECK=false
-fi
-
 DIR=$($GIT rev-parse --git-dir 2>/dev/null)
 if [ "$?" -eq 0 ]; then
   GITREPO=true
