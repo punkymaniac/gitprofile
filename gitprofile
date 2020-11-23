@@ -109,7 +109,7 @@ use_profile() {
 ### end function ###
 
 
-GIT="/usr/bin/git"
+GIT=`which git`
 NEWGIT="git profile"
 VERSION="$NEWGIT version 0.3"
 FILE="$HOME/.gitprofile"
