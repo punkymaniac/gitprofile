@@ -8,9 +8,9 @@ interrupt() {
 
 print_help() {
   echo -e \
-  "usage: $NEWGIT [OPTION]\n \
+  "usage: $SCRIPT [OPTION]\n \
   version:\tprint version\n \
-  help:\thelp of $NEWGIT\n \
+  help:\thelp of $SCRIPT\n \
   save:\tsave the current profile\n \
   new:\t\tadd a new profile\n \
   list:\tlist saved profile\n \
@@ -110,8 +110,8 @@ use_profile() {
 
 
 GIT=`which git`
-NEWGIT="git profile"
-VERSION="$NEWGIT version 0.3"
+SCRIPT="gitprofile"
+VERSION="$SCRIPT version 0.3"
 FILE="$HOME/.gitprofile"
 
 COMMIT_CHECK=$(printenv COMMIT_CHECK)
@@ -206,7 +206,7 @@ case $1 in
           add_profile "${profile[0]}:${profile[1]}:${profile[2]}"
         ;;
         *)
-          echo -e "$NEWGIT log: '$2' is not a $NEWGIT log command. See '$NEWGIT help'."
+          echo -e "$SCRIPT log: '$2' is not a $SCRIPT log command. See '$SCRIPT help'."
         ;;
       esac
     fi
@@ -303,7 +303,7 @@ case $1 in
     print_profile
   ;;
   *)
-    echo -e "$NEWGIT: '$1' is not a $NEWGIT command. See '$NEWGIT help'."
+    echo -e "$SCRIPT: '$1' is not a $SCRIPT command. See '$SCRIPT help'."
   ;;
 esac
 
