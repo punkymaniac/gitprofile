@@ -126,6 +126,10 @@ if [ "$GITREPO" = true ]; then
   NAME=`$GIT config --get user.name`
   EMAIL=`$GIT config --get user.email`
   KEY=`$GIT config --get user.signingKey`
+else
+  NAME=$USER
+  EMAIL="$USER"@"`hostname`"
+  KEY=""
 fi
 
 if [ -e "$FILE" ]; then
@@ -137,16 +141,6 @@ if [ -e "$FILE" ]; then
   fi
 else
   SAVEDPROFILE=""
-fi
-
-if [ -z "$NAME" ]; then
-  NAME=$USER
-fi
-if [ -z "$EMAIL" ]; then
-  EMAIL="$USER"@"`hostname`"
-fi
-if [ -z "$KEY" ]; then
-  KEY=""
 fi
 
 case $1 in
