@@ -124,7 +124,7 @@ fi
 
 if [ "$GITREPO" = true ]; then
   if [ "$GITHEAD" = true ]; then
-    COMMITER=$($GIT log --all --pretty=format:"%cn:%ce" | sort | uniq | tr '\n' ';' | rev | cut -c 2- | rev)
+    AUCO=$($GIT log --all --pretty=format:"%an:%ae;%cn:%ce" | tr ';' '\n' | sort | uniq | tr '\n' ';' | rev | cut -c 2- | rev)
   fi
   NAME=`$GIT config --get user.name`
   EMAIL=`$GIT config --get user.email`
@@ -171,20 +171,20 @@ case $1 in
     if [ "$GITHEAD" = true ]; then
       case $3 in
         "" | list)
-          print_list_profile "$COMMITER"
+          print_list_profile "$AUCO"
         ;;
         use)
           trap 'interrupt "Profile not changed" ' INT
-          print_list_profile "$COMMITER"
-          select_profile "$COMMITER"
+          print_list_profile "$AUCO"
+          select_profile "$AUCO"
           use_profile "${profile[0]}:${profile[1]}:${profile[2]}"
         ;;
         save)
           if ! [ -e "$FILE" ]; then
             echo -e "" > "$FILE"
           fi
-          print_list_profile "$COMMITER"
-          select_profile "$COMMITER"
+          print_list_profile "$AUCO"
+          select_profile "$AUCO"
           print_profile "${profile[0]}" "${profile[1]}" "${profile[2]}"
           add_profile "${profile[0]}:${profile[1]}:${profile[2]}"
         ;;

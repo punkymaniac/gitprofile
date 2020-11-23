@@ -8,8 +8,8 @@ A simple git profile management.
 * Change current profile with one saved profile
 * List all profile saved
 * Delete profile saved
-* List all commiter profile on the project
-* Change current profile with one commiter profile on the project
+* List all author/commiter profile on the project
+* Change current profile with one author/commiter profile on the project
 
 ## Getting Started
 
