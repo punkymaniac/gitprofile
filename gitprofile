@@ -123,9 +123,6 @@ else
 fi
 
 if [ "$GITREPO" = true ]; then
-  if [ "$GITHEAD" = true ]; then
-    AUCO=$($GIT log --all --pretty=format:"%an:%ae;%cn:%ce" | tr ';' '\n' | sort | uniq | tr '\n' ';' | rev | cut -c 2- | rev)
-  fi
   NAME=`$GIT config --get user.name`
   EMAIL=`$GIT config --get user.email`
   KEY=`$GIT config --get user.signingKey`
@@ -169,6 +166,7 @@ case $1 in
   ;;
   log)
     if [ "$GITHEAD" = true ]; then
+      AUCO=$($GIT log --all --pretty=format:"%an:%ae;%cn:%ce" | tr ';' '\n' | sort | uniq | tr '\n' ';' | rev | cut -c 2- | rev)
       case $3 in
         "" | list)
           print_list_profile "$AUCO"
