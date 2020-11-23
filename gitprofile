@@ -88,22 +88,16 @@ select_profile() {
 
 use_profile() {
   IFS=':' read -a p <<< "$1"
-  print_profile "${p[0]}" "${p[1]}" "${p[2]}"
-  read -p "Configure with this profile (yes/no)? " choice
-  if [ "$choice" = "yes" ] || [ "$choice" = "y" ]; then
-    $GIT config user.name "${p[0]}"
-    $GIT config user.email "${p[1]}"
-    echo -e "${p[2]}"
-    if ! [ -z "${p[2]}" ]; then
-      $GIT config user.signingKey "${p[2]}"
-    else
-      $GIT config --unset user.signingKey
-    fi
-    echo -e "Profile changed in: "
-    print_profile "${p[0]}" "${p[1]}" "${p[2]}"
+  $GIT config user.name "${p[0]}"
+  $GIT config user.email "${p[1]}"
+  echo -e "${p[2]}"
+  if ! [ -z "${p[2]}" ]; then
+    $GIT config user.signingKey "${p[2]}"
   else
-    interrupt "Profile not changed"
+    $GIT config --unset user.signingKey
   fi
+  echo -e "Profile changed in: "
+  print_profile "${p[0]}" "${p[1]}" "${p[2]}"
 }
 
 ### end function ###
@@ -174,14 +168,10 @@ case $1 in
   ;;
   reset)
     if [ "$GITREPO" = true ]; then
-      trap 'interrupt "Profile not reset" ' INT
-      read -p "Reset your profile (yes/no)? " choice
-      if [ "$choice" = "yes" ] || [ "$choice" = "y" ]; then
-        $GIT config --unset user.name
-        $GIT config --unset user.email
-        $GIT config --unset user.signingKey
-        print_profile "$USER" "$USER@`hostname`" ""
-      fi
+      $GIT config --unset user.name
+      $GIT config --unset user.email
+      $GIT config --unset user.signingKey
+      print_profile "$USER" "$USER@`hostname`" ""
     fi
   ;;
   log)
