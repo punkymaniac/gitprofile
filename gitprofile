@@ -24,15 +24,9 @@ print_help() {
 }
 
 print_profile() {
-  if [ -z $1 ] && [ -z $2 ] && [ -z $3] ; then
-    name=$NAME
-    email=$EMAIL
-    key=$KEY
-  else
-    name=$1
-    email=$2
-    key=$3
-  fi
+  name=$1
+  email=$2
+  key=$3
   echo -e "  -> user.name: \033[36m$name\033[0m"
   echo -e "  -> user.email: \033[36m$email\033[0m"
   echo -e "  -> user.signingKey: \033[36m$key\033[0m"
@@ -283,7 +277,7 @@ case $1 in
   ;;
   "")
     echo -e "Your profile:"
-    print_profile
+    print_profile "$NAME" "$EMAIL" "$KEY"
   ;;
   *)
     echo -e "$SCRIPT: '$1' is not a $SCRIPT command. See '$SCRIPT help'."
