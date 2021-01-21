@@ -123,13 +123,19 @@ else
 fi
 
 if [ "$GITREPO" = true ]; then
+  # If git repo, get the local profile.
   NAME=`$GIT config --get user.name`
   EMAIL=`$GIT config --get user.email`
   KEY=`$GIT config --get user.signingKey`
-else
+fi
+
+# If no profile name, use the default value.
+if [ ! -n "$NAME" ]; then
   NAME=$USER
+fi
+# If no profile email, use the default value.
+if [ ! -n "$EMAIL" ]; then
   EMAIL="$USER"@"`hostname`"
-  KEY=""
 fi
 
 if [ -e "$FILE" ]; then
