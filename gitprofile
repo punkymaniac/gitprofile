@@ -54,6 +54,7 @@ print_profile() {
 }
 
 # Add a profile in the save file name in $FILE.
+# Create the save file if not exists.
 # If the profile is already saved, quit without save the input profile.
 # $1: string, the formatted string profile to save.
 add_profile() {
@@ -133,6 +134,7 @@ SCRIPT="gitprofile"
 VERSION="0.4"
 FILE="$HOME/.gitprofile"
 
+# Check if in git repository
 DIR=$($GIT rev-parse --git-dir 2>/dev/null)
 if [ "$?" -eq 0 ]; then
   GITREPO=true
@@ -140,6 +142,7 @@ else
   GITREPO=false
 fi
 
+# Check if the repository have a HEAD.
 HEAD=$($GIT rev-parse HEAD 2>/dev/null)
 if [ "$?" -eq 0 ]; then
   GITHEAD=true
@@ -165,6 +168,7 @@ fi
 
 if [ -e "$FILE" ]; then
   if [ -f "$FILE" ]; then
+    # Get all saved profile.
     SAVEDPROFILE=$(cat "$FILE" | tr '\n' ';' | cut -c 2- | rev | cut -c 2- | rev)
   else
     echo -e "WARNING: $FILE: exists and is not a regular file"
@@ -174,6 +178,7 @@ else
   SAVEDPROFILE=""
 fi
 
+# Script parameter
 case $1 in
   version)
     echo -e "$SCRIPT version $VERSION"
