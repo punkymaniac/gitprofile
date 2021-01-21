@@ -2,6 +2,9 @@
 
 A simple git profile management.
 
+The usage of git is followed by the identity of the commiter/author.
+This tools will help you to deal with multiple git identities.
+
 ## Feature
 * Print current profile
 * Save/add profile
@@ -10,6 +13,7 @@ A simple git profile management.
 * Delete profile saved
 * List all author/commiter profile on the project
 * Change current profile with one author/commiter profile on the project
+* All profiles are saved in a file: ~/.gitprofile
 
 ## Getting Started
 
@@ -17,6 +21,16 @@ A simple git profile management.
 You need git to use gitprofile.
 
 ### Installing
+Copy the script in your prefered $PATH folder location.
+By example:
 ```
 sudo cp gitprofile /usr/local/bin/gitprofile
 ```
+
+### Recommanded configuration
+Thinking usage as a git alias.
+Configure the git alias with the following command:
+```
+git config --global alias.profile '!gitprofile'
+```
+
