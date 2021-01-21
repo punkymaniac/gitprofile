@@ -1,0 +1,57 @@
+#!/bin/sh
+#
+# pre-commit hook
+#
+# Allow to verify the profile before commiting.
+# Incase of working on/for different organization, this pre-commit hook will
+# avoid commiting with the wrong git profile.
+#
+# To verify the profile, the script will show you the current profile used for
+# the commit and ask you to confirm it's user.name.
+# If the user input is not the same as the profile user.name,
+# the commit is aborted.
+#
+
+# To deal with ctrl+C action.
+interrupt() {
+    echo "No commited"
+    exit 1
+}
+
+# Print the current profile
+print_profile() {
+    if [ ! -n "$NAME" ]; then
+        NAME=$USER
+    fi
+    if [ ! -n "$EMAIL" ]; then
+        EMAIL=$USER@`hostname`
+    fi
+    echo "  -> user.name: \033[36m$NAME\033[0m"
+    echo "  -> user.email: \033[36m$EMAIL\033[0m"
+    echo "  -> user.key: \033[36m$KEY\033[0m"
+}
+
+DIR=$(git rev-parse --git-dir 2>/dev/null)
+if [ "$?" -eq 0 ]; then
+    GITREPO=true
+else
+    GITREPO=false
+fi
+
+NAME=`git config --get user.name`
+EMAIL=`git config --get user.email`
+KEY=`git config --get user.key`
+
+if [ "$GITREPO" = true ]; then
+    trap 'interrupt' INT
+    echo "###\033[31m WARNING \033[0m###"
+    echo "Your commit profile:"
+    print_profile
+    confirm="$NAME"
+    exec < /dev/tty
+    read -p "Confirm name [ $confirm ]? " choice
+    if [ "$choice" != "$confirm" ]; then
+        interrupt
+    fi
+fi
+

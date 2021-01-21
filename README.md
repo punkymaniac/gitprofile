@@ -15,6 +15,9 @@ This tools will help you to deal with multiple git identities.
 * Change current profile with one author/commiter profile on the project
 * All profiles are saved in a file: ~/.gitprofile
 
+This repository contain also a pre-commit hook who allow to verify the profile before commiting.
+This hook is usefull only on global hook or as default hook on each new repository.
+
 ## Getting Started
 
 ### Requirements
