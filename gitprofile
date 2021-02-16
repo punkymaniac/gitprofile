@@ -197,7 +197,7 @@ case $1 in
   log)
     if [ "$GITHEAD" = true ]; then
       AUCO=$($GIT log --all --pretty=format:"%an:%ae;%cn:%ce" | tr ';' '\n' | sort | uniq | tr '\n' ';' | rev | cut -c 2- | rev)
-      case $3 in
+      case $2 in
         "" | list)
           print_list_profile "$AUCO"
         ;;
