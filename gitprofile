@@ -1,43 +1,62 @@
 #!/bin/bash
+#
+# NOTE:
+# The script save the profile in the filename ~/.gitprofile.
+# If the file doesn't exist, the script will create it.
+# The saved file contain one formatted string profile by line.
+#
+# So in this script:
+#  - a formatted string profile is the profile element separate by ':'.
+#     ex: "name:email:key"
+#  - a formatted profile's list is multiple formatted profile separate by ';'.
+#     ex: "name1:email1:key1;name2:email2:key2"
+#
+
+
 ### function ###
 
+# Write a given message and quit the script.
+# $1: string, message printed before exit.
 interrupt() {
   echo -e "\n$1"
   exit 0
 }
 
+# Print the script help.
 print_help() {
   echo -e \
   "usage: $SCRIPT [OPTION]\n \
-  version:\tprint version\n \
-  help:\thelp of $SCRIPT\n \
-  save:\tsave the current profile\n \
-  new:\t\tadd a new profile\n \
-  list:\tlist saved profile\n \
   delete:\tdelete one profile\n \
-  use\t\tuse one profile saved\n \
-  reset:\treset current profile\n \
+  help:\thelp of $SCRIPT\n \
+  list:\tlist saved profile\n \
   log:\t\toption based on git log\n \
-     list:\tlist commiter profile from project log\n \
-     use:\tuse commiter profile from project log\n \
-     save:\tsave commiter profile from project log\n"
+     list:\tlist author/committer profile from project log\n \
+     use:\tuse profile from project log\n \
+     save:\tsave profile from project log\n \
+  new:\t\tadd a new profile\n \
+  reset:\treset current profile\n \
+  save:\tsave the current profile\n \
+  version:\tprint version\n \
+  use\t\tuse one profile saved\n"
 }
 
+# Format the output of the profile.
+# $1: string, the username of the profile.
+# $2: string, the email of the profile.
+# $3: string, the key of the profile.
 print_profile() {
-  if [ -z $1 ] && [ -z $2 ] && [ -z $3] ; then
-    name=$NAME
-    email=$EMAIL
-    key=$KEY
-  else
-    name=$1
-    email=$2
-    key=$3
-  fi
+  name=$1
+  email=$2
+  key=$3
   echo -e "  -> user.name: \033[36m$name\033[0m"
   echo -e "  -> user.email: \033[36m$email\033[0m"
   echo -e "  -> user.signingKey: \033[36m$key\033[0m"
 }
 
+# Add a profile in the save file name in $FILE.
+# Create the save file if not exists.
+# If the profile is already saved, quit without save the input profile.
+# $1: string, the formatted string profile to save.
 add_profile() {
   IFS=':' read -a new <<< "$1"
   newName=${new[0]}
@@ -56,6 +75,8 @@ add_profile() {
   echo -e "$newName:$newMail:$newKey:" >> "$FILE"
 }
 
+# Print a given list of profile.
+# $1: string, a formatted profile's list.
 print_list_profile() {
   id=0
   IFS=";"
@@ -71,6 +92,9 @@ print_list_profile() {
   done
 }
 
+# Interact with the user to select a profile in a formatted profile's list.
+# Work with the print_list_profile() function
+# $1: string, a formatted profile's list.
 select_profile() {
   while [ 1 ]
   do
@@ -86,6 +110,8 @@ select_profile() {
   IFS=':' read -a profile <<< "${profiles[$i]}"
 }
 
+# Configure the current repository with a profile.
+# $1: string, a formatted string profile.
 use_profile() {
   IFS=':' read -a p <<< "$1"
   $GIT config user.name "${p[0]}"
@@ -105,9 +131,10 @@ use_profile() {
 
 GIT=`which git`
 SCRIPT="gitprofile"
-VERSION="0.4"
+VERSION="0.5"
 FILE="$HOME/.gitprofile"
 
+# Check if in git repository
 DIR=$($GIT rev-parse --git-dir 2>/dev/null)
 if [ "$?" -eq 0 ]; then
   GITREPO=true
@@ -115,6 +142,7 @@ else
   GITREPO=false
 fi
 
+# Check if the repository have a HEAD.
 HEAD=$($GIT rev-parse HEAD 2>/dev/null)
 if [ "$?" -eq 0 ]; then
   GITHEAD=true
@@ -123,18 +151,25 @@ else
 fi
 
 if [ "$GITREPO" = true ]; then
+  # If git repo, get the local profile.
   NAME=`$GIT config --get user.name`
   EMAIL=`$GIT config --get user.email`
   KEY=`$GIT config --get user.signingKey`
-else
+fi
+
+# If no profile name, use the default value.
+if [ ! -n "$NAME" ]; then
   NAME=$USER
+fi
+# If no profile email, use the default value.
+if [ ! -n "$EMAIL" ]; then
   EMAIL="$USER"@"`hostname`"
-  KEY=""
 fi
 
 if [ -e "$FILE" ]; then
   if [ -f "$FILE" ]; then
-    SAVEDPROFILE=$(cat "$FILE" | tr '\n' ';' | cut -c 2- | rev | cut -c 2- | rev)
+    # Get all saved profile.
+    SAVEDPROFILE=$(cat "$FILE" | tr '\n' ';' | rev | cut -c 2- | rev)
   else
     echo -e "WARNING: $FILE: exists and is not a regular file"
     exit 1
@@ -143,6 +178,7 @@ else
   SAVEDPROFILE=""
 fi
 
+# Script parameter
 case $1 in
   version)
     echo -e "$SCRIPT version $VERSION"
@@ -161,7 +197,7 @@ case $1 in
   log)
     if [ "$GITHEAD" = true ]; then
       AUCO=$($GIT log --all --pretty=format:"%an:%ae;%cn:%ce" | tr ';' '\n' | sort | uniq | tr '\n' ';' | rev | cut -c 2- | rev)
-      case $3 in
+      case $2 in
         "" | list)
           print_list_profile "$AUCO"
         ;;
@@ -190,7 +226,7 @@ case $1 in
   ;;
   save)
     if ! [ -e "$FILE" ]; then
-      echo -e "" > "$FILE"
+      touch "$FILE"
     fi
     add_profile "$NAME:$EMAIL:$KEY"
   ;;
@@ -223,7 +259,7 @@ case $1 in
       fi
     done
     if ! [ -e "$FILE" ]; then
-      echo -e "" > "$FILE"
+      touch "$FILE"
     fi
     add_profile "$newName:$newEmail:$newKey"
   ;;
@@ -251,7 +287,7 @@ case $1 in
       done
       i=0
       # reset file
-      echo -e "" > "$FILE"
+      > "$FILE"
       for profile in $SAVEDPROFILE
       do
         i=$(($i + 1))
@@ -277,7 +313,7 @@ case $1 in
   ;;
   "")
     echo -e "Your profile:"
-    print_profile
+    print_profile "$NAME" "$EMAIL" "$KEY"
   ;;
   *)
     echo -e "$SCRIPT: '$1' is not a $SCRIPT command. See '$SCRIPT help'."
