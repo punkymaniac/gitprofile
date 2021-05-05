@@ -35,9 +35,9 @@ print_help() {
   use\t\tuse one profile saved\n \
   reset:\treset current profile\n \
   log:\t\toption based on git log\n \
-     list:\tlist commiter profile from project log\n \
-     use:\tuse commiter profile from project log\n \
-     save:\tsave commiter profile from project log\n"
+     list:\tlist author/committer profile from project log\n \
+     use:\tuse profile from project log\n \
+     save:\tsave profile from project log\n"
 }
 
 # Format the output of the profile.
