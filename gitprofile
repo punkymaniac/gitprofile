@@ -169,7 +169,7 @@ fi
 if [ -e "$FILE" ]; then
   if [ -f "$FILE" ]; then
     # Get all saved profile.
-    SAVEDPROFILE=$(cat "$FILE" | tr '\n' ';' | cut -c 2- | rev | cut -c 2- | rev)
+    SAVEDPROFILE=$(cat "$FILE" | tr '\n' ';' | rev | cut -c 2- | rev)
   else
     echo -e "WARNING: $FILE: exists and is not a regular file"
     exit 1
@@ -226,7 +226,7 @@ case $1 in
   ;;
   save)
     if ! [ -e "$FILE" ]; then
-      echo -e "" > "$FILE"
+      touch "$FILE"
     fi
     add_profile "$NAME:$EMAIL:$KEY"
   ;;
@@ -259,7 +259,7 @@ case $1 in
       fi
     done
     if ! [ -e "$FILE" ]; then
-      echo -e "" > "$FILE"
+      touch "$FILE"
     fi
     add_profile "$newName:$newEmail:$newKey"
   ;;
@@ -287,7 +287,7 @@ case $1 in
       done
       i=0
       # reset file
-      echo -e "" > "$FILE"
+      > "$FILE"
       for profile in $SAVEDPROFILE
       do
         i=$(($i + 1))
